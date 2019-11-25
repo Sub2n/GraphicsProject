@@ -13,10 +13,12 @@ class Vector
 			y = py;
 			z = pz;
 		}
-		float dotProduct(const Vector& v1, const Vector& v2);
-		Vector crossProduct(const Vector& v1, const Vector& v2);
+		float dotProduct(const Vector& v);
+		Vector crossProduct(const Vector& v);
 		friend Vector operator+(const Vector& v1, const Vector& v2);
 		friend Vector operator-(const Vector& v1, const Vector& v2);
+		friend Vector operator*(const Vector& v1, float f);
 		Vector& operator=(const Vector& v1);
+		Vector normalize();
 };
 

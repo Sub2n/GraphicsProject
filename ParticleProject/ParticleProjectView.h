@@ -28,6 +28,8 @@ public:
 
 public:
 	Vector pos, look, up; // 카메라
+	float angle, speed;	// 회전 각, 전진 속도
+	Vector rotateVector(float angle, int x, int y, int z, Vector& v);
 
 // 재정의입니다.
 public:

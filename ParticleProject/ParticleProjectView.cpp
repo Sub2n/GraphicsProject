@@ -91,6 +91,9 @@ void CParticleProjectView::InitGL(GLvoid) {
 	pos = p;
 	look = l;
 	up = u;
+
+	angle = 0;
+	speed = 2;
 }
 
 // 화면 크기 바뀔 때마다 다시 계산
@@ -110,6 +113,31 @@ void CParticleProjectView::ReSizeGLScene(GLsizei width, GLsizei height) {
 	glLoadIdentity();
 }
 
+Vector CParticleProjectView::rotateVector(float angle, int x, int y, int z, Vector& v) {
+	float cosTheta = (float)cos(angle);
+	float sinTheta = (float)sin(angle);
+	float R[3][3];
+
+	R[0][0] = ((1 - cosTheta) * x * x + cosTheta);
+	R[0][1] = ((1 - cosTheta) * x * y - sinTheta * z);
+	R[0][2] = ((1 - cosTheta) * x * z + sinTheta * y);
+
+	R[1][0] = ((1 - cosTheta) * x * y + sinTheta * z);
+	R[1][1] = ((1 - cosTheta) * y * y + cosTheta);
+	R[1][2] = ((1 - cosTheta) * y * z - sinTheta * x);
+
+	R[2][0] = ((1 - cosTheta) * x * z - sinTheta * y);
+	R[2][1] = ((1 - cosTheta) * y * z + sinTheta * x);
+	R[2][2] = ((1 - cosTheta) * z * z + cosTheta);
+
+	Vector result;
+	result.x = R[0][0] * v.x + R[0][1] * v.y + R[0][2] * v.z;
+	result.y = R[1][0] * v.x + R[1][1] * v.y + R[1][2] * v.z;
+	result.z = R[2][0] * v.x + R[2][1] * v.y + R[2][2] * v.z;
+
+	return result;
+}
+
 // draw 함수
 // MFC가 자동으로 부르는 onDraw에서 호출되어 그림 그림
 void CParticleProjectView::DrawGLScene(void) {
@@ -119,6 +147,8 @@ void CParticleProjectView::DrawGLScene(void) {
 
 	// 카메라 위치(x, y, z), 카메라가 바라보는 점의 위치(x, y, z), 카메라의 회전상태(roll) (vector)
 	// 0, 20, 20, 0, 0, -30, 0, 1, 0
+
+
 	gluLookAt(pos.x, pos.y, pos.z, look.x, look.y, look.z, up.x, up.y, up.z);
 	// z : 카메라 앞 뒤, y : 높이
 
@@ -271,21 +301,43 @@ void CParticleProjectView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	switch (nChar) {
 
 	case VK_LEFT:
-		
+	{
+		angle -= 1;
+		Vector newLook = rotateVector(angle, 0, 1, 0, (look - pos) * speed) + pos;
+		look = newLook;
 		break;
+	}
+
 
 	case VK_RIGHT:
-	
+	{
+		angle += 1;
+		Vector newLook = rotateVector(angle, 0, 1, 0, (look - pos) * speed) + pos;
+		look = newLook;
 		break;
+	}
+
 
 	case VK_UP:
-	
+	{
+		angle += 1;
+		Vector cross = up.crossProduct(look - pos);
+		cross = cross * speed;
+		Vector newLook = rotateVector(angle, cross.x, cross.y, cross.z, look - pos) + pos;
+		look = newLook;
 		break;
+	}
+
 
 	case VK_DOWN:
-	
+	{
+		angle -= 1;
+		Vector cross = up.crossProduct(look - pos);
+		cross = cross * speed;
+		Vector newLook = rotateVector(angle, cross.x, cross.y, cross.z, look - pos) + pos;
+		look = newLook;
 		break;
-
+	}
 	}
 	CView::OnKeyDown(nChar, nRepCnt, nFlags);
 }
