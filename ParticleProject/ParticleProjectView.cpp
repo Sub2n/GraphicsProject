@@ -153,12 +153,51 @@ void CParticleProjectView::DrawGLScene(void) {
 	// z : 카메라 앞 뒤, y : 높이
 
 	// 잔디바닥
+	/*
 	glBegin(GL_QUADS);
 		glColor4f(0.f, 1.f, 0.f, 0.7f);
 		glVertex3f(-50.0f, 0.f, 50.0f);
 		glVertex3f(50.0f, 0.f, 50.0f);
 		glVertex3f(50.0f, 0.f, -50.0f);
 		glVertex3f(-50.0f, 0.f, -50.0f);
+	glEnd();
+	*/
+	glBegin(GL_QUADS);
+		glColor3f(1, 1, 0);
+		glVertex3f(-0.5, -0.5, 0.5);
+		glVertex3f(0.5, -0.5, 0.5);
+		glVertex3f(0.5, 0.5, 0.5);
+		glVertex3f(-0.5, 0.5, 0.5);
+
+		glColor3f(0, 1, 1);
+		glVertex3f(0.5, 0.5, 0.5);
+		glVertex3f(0.5, -0.5, 0.5);
+		glVertex3f(0.5, -0.5, -0.5);
+		glVertex3f(0.5, 0.5, -0.5);
+
+		glColor3f(0.5, 0.5, 1);
+		glVertex3f(0.5, -0.5, 0.5);
+		glVertex3f(-0.5, -0.5, 0.5);
+		glVertex3f(-0.5, -0.5, -0.5);
+		glVertex3f(0.5, -0.5, -0.5);
+
+		glColor3f(0.5, 0.5, 1);
+		glVertex3f(-0.5, 0.5, 0.5);
+		glVertex3f(0.5, 0.5, 0.5);
+		glVertex3f(0.5, 0.5, -0.5);
+		glVertex3f(-0.5, 0.5, -0.5);
+
+		glColor3f(1, 1, 0);
+		glVertex3f(-0.5, -0.5, -0.5);
+		glVertex3f(-0.5, 0.5, -0.5);
+		glVertex3f(0.5, 0.5, -0.5);
+		glVertex3f(0.5, -0.5, -0.5);
+
+		glColor3f(1, 0.5, 0.5);
+		glVertex3f(-0.5, 0.5, -0.5);
+		glVertex3f(-0.5, -0.5, -0.5);
+		glVertex3f(-0.5, -0.5, 0.5);
+		glVertex3f(-0.5, 0.5, 0.5);
 	glEnd();
 	
 	// 버퍼 스왑 MFC 함수
@@ -302,8 +341,8 @@ void CParticleProjectView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	case VK_LEFT:
 	{
-		angle -= 1;
-		Vector newLook = rotateVector(angle, 0, 1, 0, (look - pos) * speed) + pos;
+		angle -= 0.09f;
+		Vector newLook = rotateVector(angle, 0, 1, 0, (look - pos) ) + pos;
 		look = newLook;
 		break;
 	}
@@ -311,8 +350,8 @@ void CParticleProjectView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	case VK_RIGHT:
 	{
-		angle += 1;
-		Vector newLook = rotateVector(angle, 0, 1, 0, (look - pos) * speed) + pos;
+		angle += 0.09f;
+		Vector newLook = rotateVector(angle, 0, 1, 0, (look - pos)) + pos;
 		look = newLook;
 		break;
 	}
@@ -320,7 +359,7 @@ void CParticleProjectView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	case VK_UP:
 	{
-		angle += 1;
+		angle += 0.09f;
 		Vector cross = up.crossProduct(look - pos);
 		cross = cross * speed;
 		Vector newLook = rotateVector(angle, cross.x, cross.y, cross.z, look - pos) + pos;
@@ -331,7 +370,7 @@ void CParticleProjectView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	case VK_DOWN:
 	{
-		angle -= 1;
+		angle -= 0.09f;
 		Vector cross = up.crossProduct(look - pos);
 		cross = cross * speed;
 		Vector newLook = rotateVector(angle, cross.x, cross.y, cross.z, look - pos) + pos;
