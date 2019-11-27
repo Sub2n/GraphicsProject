@@ -8,8 +8,9 @@
 #endif
 
 #ifndef STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+	#include "stb_image.h"
 #endif
+
 #include "resource.h"       // 주 기호입니다.
 
 #include <gl/gl.H>

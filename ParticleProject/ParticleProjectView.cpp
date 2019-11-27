@@ -32,6 +32,10 @@ BEGIN_MESSAGE_MAP(CParticleProjectView, CView)
 	ON_WM_SIZE()
 	ON_WM_CREATE()
 	ON_WM_KEYDOWN()
+	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
+	ON_WM_MOUSEWHEEL()
 END_MESSAGE_MAP()
 
 BOOL CParticleProjectView::SetDevicePixelFormat(HDC hdc) {
@@ -85,21 +89,32 @@ void CParticleProjectView::InitGL(GLvoid) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Vector p(0.0f, 3.0f, 20.0f);
+	Vector p(0.0f, 3.0f, 10.0f);
 	Vector f(0.0f, 0.0f, -1.0f);
 	Vector u(0.0f, 1.0f, 0.0f);
+
 	cameraPos = p;
 	cameraFront = f;
 	cameraUp = u;
 
-	angle = xAngle = yAngle = 0;
-	speed = 2;
+	firstMouse = TRUE;
+	mouseMove = FALSE;
+
+	yaw = -90.0f;
+	pitch = 0.0f;
+
 }
 
 // 화면 크기 바뀔 때마다 다시 계산
 void CParticleProjectView::ReSizeGLScene(GLsizei width, GLsizei height) {
 	// 0으로 나누면 안됨 (시야각 계산시)
 	if (height == 0) height = 1;
+
+	lastX = width / 2;
+	lastY = height / 2;
+
+	Width = width;
+	Height = height;
 
 	glViewport(0, 0, width, height); // 그림이 그려지는 영역의 픽셀단위 크기 재설정
 	glMatrixMode(GL_PROJECTION);
@@ -179,18 +194,24 @@ void CParticleProjectView::DrawGLScene(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
-	// 카메라 위치(x, y, z), 카메라가 바라보는 점의 위치(x, y, z), 카메라의 회전상태(roll) (vector)
-	// 0, 20, 20, 0, 0, -30, 0, 1, 0
 
-	// cameraPos, cameraPos + cameraFront, cameraUp
+	glViewport(0, 0, Width, Height); // 그림이 그려지는 영역의 픽셀단위 크기 재설정
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	// 윈도우 시야각 계산 (중요)
+	gluPerspective(45.0f, (GLfloat)Width / (GLfloat)Height, 0.1f, 1000.0f); // 45.0f = 수직화각 (카메라가 위아래로 45도만큼 볼 수 있음), 수평화각 = 폭 / 높이, 앞에서 자르는 단위, 뒤에서 자르는 단위 (meter 단위로 생각)
+
+	// 모델뷰 매트릭스 설정
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	// 카메라 위치(x, y, z), 카메라가 바라보는 점의 위치(x, y, z), 카메라의 회전상태(roll) (vector)
 	Vector look = cameraPos + cameraFront;
 	gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, look.x, look.y, look.z, cameraUp.x, cameraUp.y, cameraUp.z);
 	// z : 카메라 앞 뒤, y : 높이
 
 	// 잔디바닥
-
-	glRotatef(xAngle, 1, 0, 0);
-	glRotatef(yAngle, 0, 1, 0);
 
 	glBegin(GL_QUADS);
 		glColor4f(0.f, 1.f, 0.f, 0.7f);
@@ -377,36 +398,113 @@ void CParticleProjectView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 
-	float cameraSpeed = 0.05f; // adjust accordingly
+	float cameraSpeed = 0.5f; // adjust accordingly
 
 	switch (nChar) {
 
-	case VK_LEFT:
+	case 0x41:
 	{
-		cameraPos -= cameraFront.crossProduct(cameraUp).normalize() * cameraSpeed;
+		Vector right = cameraFront.crossProduct(cameraUp);
+		cameraPos -= right.normalize() * cameraSpeed;
 		break;
 	}
 
-
-	case VK_RIGHT:
+	case 0x44:
 	{
-		cameraPos += cameraFront.crossProduct(cameraUp).normalize() * cameraSpeed;
+		Vector right = cameraFront.crossProduct(cameraUp);
+		cameraPos += right.normalize() * cameraSpeed;
 		break;
 	}
 
-
-	case VK_UP:
+	case 0x57:
 	{
 		cameraPos += cameraFront * cameraSpeed;
 		break;
 	}
 
-
-	case VK_DOWN:
+	case 0x53:
 	{
 		cameraPos -= cameraFront * cameraSpeed;
 		break;
 	}
 	}
 	CView::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+float CParticleProjectView::radians(float degree) {
+	return (degree * M_PI) / 180;
+}
+
+
+void CParticleProjectView::OnMouseMove(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	CView::OnMouseMove(nFlags, point);
+
+	if (firstMouse)
+	{
+		lastX = point.x;
+		lastY = point.y;
+		firstMouse = false;
+	}
+
+	float xOffset = point.x - lastX;
+	float yOffset = lastY - point.y; // y 좌표의 범위는 밑에서부터 위로가기 때문에 반대로 바꿉니다.
+	lastX = point.x;
+	lastY = point.y;
+
+	float sensitivity = 0.15f;
+	xOffset *= sensitivity;
+	yOffset *= sensitivity;
+
+	yaw += xOffset;
+	pitch += yOffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	Vector front;
+	front.x = cos(radians(pitch)) * cos(radians(yaw));
+	front.y = sin(radians(pitch));
+	front.z = cos(radians(pitch)) * sin(radians(yaw));
+
+	cameraFront = front.normalize();
+
+	Vector look = cameraPos + cameraFront;
+	gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, look.x, look.y, look.z, cameraUp.x, cameraUp.y, cameraUp.z);
+}
+
+
+void CParticleProjectView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	CView::OnLButtonDown(nFlags, point);
+
+}
+
+
+void CParticleProjectView::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	CView::OnLButtonUp(nFlags, point);
+
+}
+
+
+BOOL CParticleProjectView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	if (zDelta > 0) {
+		cameraPos.z -= 1;
+	}
+	else {
+		cameraPos.z += 1;
+	}
+
+	return CView::OnMouseWheel(nFlags, zDelta, pt);
 }

@@ -4,6 +4,7 @@
 
 #pragma once
 
+# define M_PI           3.14159265358979323846  /* pi */
 
 class CParticleProjectView : public CView
 {
@@ -29,8 +30,13 @@ public:
 
 public:
 	Vector cameraPos, cameraFront, cameraUp; // 카메라
-	float angle, speed;	// 회전 각, 전진 속도
-	float xAngle, yAngle;
+	float Width, Height;
+	float lastX, lastY;
+	BOOL firstMouse, mouseMove;
+	float pitch, yaw;
+
+public:
+	float radians(float degree);
 	Vector rotateVector(float angle, int x, int y, int z, Vector& v);
 
 // 재정의입니다.
@@ -62,6 +68,10 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 };
 
 #ifndef _DEBUG  // ParticleProjectView.cpp의 디버그 버전

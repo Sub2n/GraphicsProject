@@ -57,10 +57,12 @@ Vector& Vector::operator-=(const Vector& v1) {
 }
 
 Vector Vector::normalize() {
-	int s = sqrt(x * x + y * y + z * z);
+	float s = sqrt(x * x + y * y + z * z);
+
 	Vector n;
 	n.x = x / s;
 	n.y = y / s;
 	n.z = z / s;
+
 	return n;
 }
