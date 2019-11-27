@@ -85,14 +85,14 @@ void CParticleProjectView::InitGL(GLvoid) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Vector p(0, 20, 20);
-	Vector l(0, 0, -30);
-	Vector u(0, 1, 0);
-	pos = p;
-	look = l;
-	up = u;
+	Vector p(0.0f, 3.0f, 20.0f);
+	Vector f(0.0f, 0.0f, -1.0f);
+	Vector u(0.0f, 1.0f, 0.0f);
+	cameraPos = p;
+	cameraFront = f;
+	cameraUp = u;
 
-	angle = 0;
+	angle = xAngle = yAngle = 0;
 	speed = 2;
 }
 
@@ -138,6 +138,40 @@ Vector CParticleProjectView::rotateVector(float angle, int x, int y, int z, Vect
 	return result;
 }
 
+/*
+GLuint CParticleProjectView::loadCubeMap(vector<std::string> faces) {
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	int width, height, nrChannels;
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+			);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+			stbi_image_free(data);
+		}
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
+}
+*/
+
+
 // draw 함수
 // MFC가 자동으로 부르는 onDraw에서 호출되어 그림 그림
 void CParticleProjectView::DrawGLScene(void) {
@@ -148,56 +182,60 @@ void CParticleProjectView::DrawGLScene(void) {
 	// 카메라 위치(x, y, z), 카메라가 바라보는 점의 위치(x, y, z), 카메라의 회전상태(roll) (vector)
 	// 0, 20, 20, 0, 0, -30, 0, 1, 0
 
-
-	gluLookAt(pos.x, pos.y, pos.z, look.x, look.y, look.z, up.x, up.y, up.z);
+	// cameraPos, cameraPos + cameraFront, cameraUp
+	Vector look = cameraPos + cameraFront;
+	gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, look.x, look.y, look.z, cameraUp.x, cameraUp.y, cameraUp.z);
 	// z : 카메라 앞 뒤, y : 높이
 
 	// 잔디바닥
-	/*
+
+	glRotatef(xAngle, 1, 0, 0);
+	glRotatef(yAngle, 0, 1, 0);
+
 	glBegin(GL_QUADS);
 		glColor4f(0.f, 1.f, 0.f, 0.7f);
-		glVertex3f(-50.0f, 0.f, 50.0f);
-		glVertex3f(50.0f, 0.f, 50.0f);
-		glVertex3f(50.0f, 0.f, -50.0f);
-		glVertex3f(-50.0f, 0.f, -50.0f);
+		glVertex3f(-50.0, 0, 50.0);
+		glVertex3f(50.0, 0, 50.0);
+		glVertex3f(50.0, 0, -50.0);
+		glVertex3f(-50.0, 0, -50.0);
 	glEnd();
-	*/
+
 	glBegin(GL_QUADS);
 		glColor3f(1, 1, 0);
-		glVertex3f(-0.5, -0.5, 0.5);
-		glVertex3f(0.5, -0.5, 0.5);
-		glVertex3f(0.5, 0.5, 0.5);
-		glVertex3f(-0.5, 0.5, 0.5);
+		glVertex3f(0.0, 0.0, 1.0);
+		glVertex3f(1.0, 0.0, 1.0);
+		glVertex3f(1.0, 1.0, 1.0);
+		glVertex3f(0.0, 1.0, 1.0);
 
 		glColor3f(0, 1, 1);
-		glVertex3f(0.5, 0.5, 0.5);
-		glVertex3f(0.5, -0.5, 0.5);
-		glVertex3f(0.5, -0.5, -0.5);
-		glVertex3f(0.5, 0.5, -0.5);
+		glVertex3f(1.0, 1.0, 1.0);
+		glVertex3f(1.0, 0.0, 1.0);
+		glVertex3f(1.0, 0.0, 0.0);
+		glVertex3f(1.0, 1.0, 0.0);
 
 		glColor3f(0.5, 0.5, 1);
-		glVertex3f(0.5, -0.5, 0.5);
-		glVertex3f(-0.5, -0.5, 0.5);
-		glVertex3f(-0.5, -0.5, -0.5);
-		glVertex3f(0.5, -0.5, -0.5);
+		glVertex3f(1.0, 0.0, 1.0);
+		glVertex3f(0.0, 0.0, 1.0);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(1.0, 0.0, 0.0);
 
 		glColor3f(0.5, 0.5, 1);
-		glVertex3f(-0.5, 0.5, 0.5);
-		glVertex3f(0.5, 0.5, 0.5);
-		glVertex3f(0.5, 0.5, -0.5);
-		glVertex3f(-0.5, 0.5, -0.5);
+		glVertex3f(0.0, 1.0, 1.0);
+		glVertex3f(1.0, 1.0, 1.0);
+		glVertex3f(1.0, 1.0, 0.0);
+		glVertex3f(0.0, 1.0, 0.0);
 
 		glColor3f(1, 1, 0);
-		glVertex3f(-0.5, -0.5, -0.5);
-		glVertex3f(-0.5, 0.5, -0.5);
-		glVertex3f(0.5, 0.5, -0.5);
-		glVertex3f(0.5, -0.5, -0.5);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(0.0, 1.0, 0.0);
+		glVertex3f(1.0, 1.0, 0.0);
+		glVertex3f(1.0, 0.0, 0.0);
 
 		glColor3f(1, 0.5, 0.5);
-		glVertex3f(-0.5, 0.5, -0.5);
-		glVertex3f(-0.5, -0.5, -0.5);
-		glVertex3f(-0.5, -0.5, 0.5);
-		glVertex3f(-0.5, 0.5, 0.5);
+		glVertex3f(0.0, 1.0, 0.0);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(0.0, 0.0, 1.0);
+		glVertex3f(0.0, 1.0, 1.0);
 	glEnd();
 	
 	// 버퍼 스왑 MFC 함수
@@ -336,45 +374,37 @@ int CParticleProjectView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void CParticleProjectView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
+
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	float cameraSpeed = 0.05f; // adjust accordingly
+
 	switch (nChar) {
 
 	case VK_LEFT:
 	{
-		angle -= 0.09f;
-		Vector newLook = rotateVector(angle, 0, 1, 0, (look - pos) ) + pos;
-		look = newLook;
+		cameraPos -= cameraFront.crossProduct(cameraUp).normalize() * cameraSpeed;
 		break;
 	}
 
 
 	case VK_RIGHT:
 	{
-		angle += 0.09f;
-		Vector newLook = rotateVector(angle, 0, 1, 0, (look - pos)) + pos;
-		look = newLook;
+		cameraPos += cameraFront.crossProduct(cameraUp).normalize() * cameraSpeed;
 		break;
 	}
 
 
 	case VK_UP:
 	{
-		angle += 0.09f;
-		Vector cross = up.crossProduct(look - pos);
-		cross = cross * speed;
-		Vector newLook = rotateVector(angle, cross.x, cross.y, cross.z, look - pos) + pos;
-		look = newLook;
+		cameraPos += cameraFront * cameraSpeed;
 		break;
 	}
 
 
 	case VK_DOWN:
 	{
-		angle -= 0.09f;
-		Vector cross = up.crossProduct(look - pos);
-		cross = cross * speed;
-		Vector newLook = rotateVector(angle, cross.x, cross.y, cross.z, look - pos) + pos;
-		look = newLook;
+		cameraPos -= cameraFront * cameraSpeed;
 		break;
 	}
 	}

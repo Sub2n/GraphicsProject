@@ -19,6 +19,8 @@ class Vector
 		friend Vector operator-(const Vector& v1, const Vector& v2);
 		friend Vector operator*(const Vector& v1, float f);
 		Vector& operator=(const Vector& v1);
+		Vector& operator+=(const Vector& v1);
+		Vector& operator-=(const Vector& v1);
 		Vector normalize();
 };
 

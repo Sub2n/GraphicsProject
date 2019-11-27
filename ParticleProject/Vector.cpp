@@ -42,6 +42,20 @@ Vector& Vector::operator=(const Vector& v1) {
 	return *this;
 }
 
+Vector& Vector::operator+=(const Vector& v1) {
+	x += v1.x;
+	y += v1.y;
+	z += v1.z;
+	return *this;
+}
+
+Vector& Vector::operator-=(const Vector& v1) {
+	x -= v1.x;
+	y -= v1.y;
+	z -= v1.z;
+	return *this;
+}
+
 Vector Vector::normalize() {
 	int s = sqrt(x * x + y * y + z * z);
 	Vector n;

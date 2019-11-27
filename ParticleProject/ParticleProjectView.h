@@ -25,10 +25,12 @@ public:
 	void InitGL(void);
 	void ReSizeGLScene(GLsizei width, GLsizei height);
 	void DrawGLScene(void);	// 그림 그리는 거 (여기 draw 코드만 수정하면 됨)
+	GLuint loadCubeMap(vector<std::string> faces);
 
 public:
-	Vector pos, look, up; // 카메라
+	Vector cameraPos, cameraFront, cameraUp; // 카메라
 	float angle, speed;	// 회전 각, 전진 속도
+	float xAngle, yAngle;
 	Vector rotateVector(float angle, int x, int y, int z, Vector& v);
 
 // 재정의입니다.

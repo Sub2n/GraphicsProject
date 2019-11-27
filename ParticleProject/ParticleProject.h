@@ -7,6 +7,9 @@
 	#error "PCH에 대해 이 파일을 포함하기 전에 'pch.h'를 포함합니다."
 #endif
 
+#ifndef STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#endif
 #include "resource.h"       // 주 기호입니다.
 
 #include <gl/gl.H>
@@ -15,6 +18,8 @@
 #include <gl/glaux.H>
 
 #include "vector.h"
+
+#include <vector>
 
 #pragma comment(lib, "OPENGL32.LIB")
 #pragma comment(lib, "GLAUX.LIB")
