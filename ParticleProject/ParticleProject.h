@@ -17,15 +17,18 @@
 #include <gl/glu.H>
 #include <gl/glut.h>
 #include <gl/glaux.H>
+#include <gl/glfw3.h>
+#include <gl/khrplatform.h>
 
 #include "vector.h"
 
 #include <vector>
 
 #pragma comment(lib, "OPENGL32.LIB")
-#pragma comment(lib, "GLAUX.LIB")
 #pragma comment(lib, "GLU32.LIB")
+#pragma comment(lib, "GLAUX.LIB")
 #pragma comment(lib, "GLUT32.LIB")
+#pragma comment(lib, "GLFW3.LIB")
 
 // CParticleProjectApp:
 // 이 클래스의 구현에 대해서는 ParticleProject.cpp을(를) 참조하세요.

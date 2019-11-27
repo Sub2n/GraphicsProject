@@ -97,8 +97,7 @@ void CParticleProjectView::InitGL(GLvoid) {
 	cameraFront = f;
 	cameraUp = u;
 
-	firstMouse = TRUE;
-	mouseMove = FALSE;
+	firstMouse = mouseMove = TRUE;
 
 	yaw = -90.0f;
 	pitch = 0.0f;
@@ -153,39 +152,6 @@ Vector CParticleProjectView::rotateVector(float angle, int x, int y, int z, Vect
 	return result;
 }
 
-/*
-GLuint CParticleProjectView::loadCubeMap(vector<std::string> faces) {
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-	int width, height, nrChannels;
-	for (unsigned int i = 0; i < faces.size(); i++)
-	{
-		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-				0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-			);
-			stbi_image_free(data);
-		}
-		else
-		{
-			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-			stbi_image_free(data);
-		}
-	}
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-	return textureID;
-}
-*/
-
 
 // draw 함수
 // MFC가 자동으로 부르는 onDraw에서 호출되어 그림 그림
@@ -212,7 +178,6 @@ void CParticleProjectView::DrawGLScene(void) {
 	// z : 카메라 앞 뒤, y : 높이
 
 	// 잔디바닥
-
 	glBegin(GL_QUADS);
 		glColor4f(0.f, 1.f, 0.f, 0.7f);
 		glVertex3f(-50.0, 0, 50.0);
@@ -442,6 +407,8 @@ void CParticleProjectView::OnMouseMove(UINT nFlags, CPoint point)
 
 	CView::OnMouseMove(nFlags, point);
 
+	if (!mouseMove) return;
+
 	if (firstMouse)
 	{
 		lastX = point.x;
@@ -481,17 +448,8 @@ void CParticleProjectView::OnMouseMove(UINT nFlags, CPoint point)
 void CParticleProjectView::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
-
+	mouseMove = !mouseMove;
 	CView::OnLButtonDown(nFlags, point);
-
-}
-
-
-void CParticleProjectView::OnLButtonUp(UINT nFlags, CPoint point)
-{
-	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
-
-	CView::OnLButtonUp(nFlags, point);
 
 }
 
