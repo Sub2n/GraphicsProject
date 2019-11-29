@@ -263,51 +263,64 @@ GLuint CParticleProjectView::loadTextureBMP(const char* filename) {
 void CParticleProjectView::DrawCube() {
 	glBegin(GL_QUADS);
 	glColor3f(1, 1, 0);
-	glVertex3f(0.0, 0.0, 1.0);
-	glVertex3f(1.0, 0.0, 1.0);
-	glVertex3f(1.0, 1.0, 1.0);
-	glVertex3f(0.0, 1.0, 1.0);
+	glVertex3f(-0.5, -0.5, 0.5);
+	glVertex3f(0.5, -0.5, 0.5);
+	glVertex3f(0.5, 0.5, 0.5);
+	glVertex3f(-0.5, 0.5, 0.5);
 
 	glColor3f(0, 1, 1);
-	glVertex3f(1.0, 1.0, 1.0);
-	glVertex3f(1.0, 0.0, 1.0);
-	glVertex3f(1.0, 0.0, 0.0);
-	glVertex3f(1.0, 1.0, 0.0);
+	glVertex3f(0.5, 0.5, 0.5);
+	glVertex3f(0.5, -0.5, 0.5);
+	glVertex3f(0.5, -0.5, -0.5);
+	glVertex3f(0.5, 0.5, -0.5);
 
 	glColor3f(0.5, 0.5, 1);
-	glVertex3f(1.0, 0.0, 1.0);
-	glVertex3f(0.0, 0.0, 1.0);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(1.0, 0.0, 0.0);
+	glVertex3f(0.5, -0.5, 0.5);
+	glVertex3f(-0.5, -0.5, 0.5);
+	glVertex3f(-0.5, -0.5, -0.5);
+	glVertex3f(0.5, -0.5, -0.5);
 
 	glColor3f(0.5, 0.5, 1);
-	glVertex3f(0.0, 1.0, 1.0);
-	glVertex3f(1.0, 1.0, 1.0);
-	glVertex3f(1.0, 1.0, 0.0);
-	glVertex3f(0.0, 1.0, 0.0);
+	glVertex3f(-0.5, 0.5, 0.5);
+	glVertex3f(0.5, 0.5, 0.5);
+	glVertex3f(0.5, 0.5, -0.5);
+	glVertex3f(-0.5, 0.5, -0.5);
 
 	glColor3f(1, 1, 0);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0.0, 1.0, 0.0);
-	glVertex3f(1.0, 1.0, 0.0);
-	glVertex3f(1.0, 0.0, 0.0);
+	glVertex3f(-0.5, -0.5, -0.5);
+	glVertex3f(-0.5, 0.5, -0.5);
+	glVertex3f(0.5, 0.5, -0.5);
+	glVertex3f(0.5, -0.5, -0.5);
 
 	glColor3f(1, 0.5, 0.5);
-	glVertex3f(0.0, 1.0, 0.0);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0.0, 0.0, 1.0);
-	glVertex3f(0.0, 1.0, 1.0);
+	glVertex3f(-0.5, 0.5, -0.5);
+	glVertex3f(-0.5, -0.5, -0.5);
+	glVertex3f(-0.5, -0.5, 0.5);
+	glVertex3f(-0.5, 0.5, 0.5);
 	glEnd();
 }
 
 void CParticleProjectView::DrawSphere() {
-	GLint circle_points = 100;
-	glBegin(GL_LINE_LOOP);
-	for (int j = 0; j < circle_points; j++) {
-		float angle = 2 * PI * j / circle_points;
-		glVertex2f(cos(angle), sin(angle));
+	GLfloat x, y, z, alpha, beta; // Storage for coordinates and angles        
+	GLfloat radius = 1.0f;
+	int gradation = 20;
+
+	for (alpha = 0.0; alpha < PI; alpha += PI / gradation)
+	{
+		glBegin(GL_TRIANGLE_STRIP);
+		for (beta = 0.0; beta < 2.01 * PI; beta += PI / gradation)
+		{
+			x = radius * cos(beta) * sin(alpha);
+			y = radius * sin(beta) * sin(alpha);
+			z = radius * cos(alpha);
+			glVertex3f(x, y, z);
+			x = radius * cos(beta) * sin(alpha + PI / gradation);
+			y = radius * sin(beta) * sin(alpha + PI / gradation);
+			z = radius * cos(alpha + PI / gradation);
+			glVertex3f(x, y, z);
+		}
+		glEnd();
 	}
-	glEnd();
 }
 
 // draw 함수
@@ -337,21 +350,16 @@ void CParticleProjectView::DrawGLScene(void) {
 	DrawCube();
 
 	// 잔디바닥
-	glBegin(GL_QUADS);
-	glColor4f(0.1f, 0.1f, 0.7f, 0.7f);
-	glVertex3f(-50.0, -50.0, 50.0);
-	glVertex3f(50.0, -50.0, 50.0);
-	glVertex3f(50.0, -50.0, -50.0);
-	glVertex3f(-50.0, -50.0, -50.0);
-	glEnd();
-
+	glPushMatrix();
+	glTranslatef(0.0, 5.0, 0.0);
 	DrawSphere();
+	glPopMatrix();
 
 	glPushMatrix();
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
-	glTranslatef(-25.0, 0, 25.0);
+	glTranslatef(0, 24.5, 0);
 	glScalef(50.0, 50.0, 50.0);
 	DrawCube();
 	glDisable(GL_CULL_FACE);
