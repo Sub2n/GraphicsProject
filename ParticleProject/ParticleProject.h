@@ -8,7 +8,7 @@
 #endif
 
 #ifndef STB_IMAGE_IMPLEMENTATION
-	#include "stb_image.h"
+	#include <gl/stb_image.h>
 #endif
 
 #include "resource.h"       // 주 기호입니다.
@@ -21,7 +21,7 @@
 #include <gl/khrplatform.h>
 
 #include "vector.h"
-
+#define PI 3.141592
 #include <vector>
 
 #pragma comment(lib, "OPENGL32.LIB")

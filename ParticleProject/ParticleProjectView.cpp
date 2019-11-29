@@ -77,6 +77,7 @@ BOOL CParticleProjectView::SetDevicePixelFormat(HDC hdc) {
 	return TRUE;
 }
 
+
 // GL 초기화 함수
 void CParticleProjectView::InitGL(GLvoid) {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.5f); // 윈도우 배경색 설정
@@ -152,6 +153,162 @@ Vector CParticleProjectView::rotateVector(float angle, int x, int y, int z, Vect
 	return result;
 }
 
+GLuint loadBMP_custom(const char* imagepath) {
+	// Data read from the header of the BMP file
+	unsigned char header[54]; // Each BMP file begins by a 54-bytes header
+	unsigned int dataPos;     // Position in the file where the actual data begins
+	unsigned int width, height;
+	unsigned int imageSize;   // = width*height*3
+	// Actual RGB data
+	unsigned char* data;
+
+	// Open the file
+	FILE* file = fopen(imagepath, "rb");
+	if (!file) { printf("Image could not be opened\n"); return 0; }
+
+	if (fread(header, 1, 54, file) != 54) { // If not 54 bytes read : problem
+		printf("Not a correct BMP file\n");
+		return false;
+	}
+
+	if (header[0] != 'B' || header[1] != 'M') {
+		printf("Not a correct BMP file\n");
+		return 0;
+	}
+
+	// 바이트 배열에서 int 변수를 읽습니다. 
+	dataPos = *(int*) & (header[0x0A]);
+	imageSize = *(int*) & (header[0x22]);
+	width = *(int*) & (header[0x12]);
+	height = *(int*) & (header[0x16]);
+
+	// 몇몇 BMP 파일들은 포맷이 잘못되었습니다. 정보가 누락됬는지 확인해봅니다. 
+// Some BMP files are misformatted, guess missing information
+	if (imageSize == 0)    imageSize = width * height * 3; // 3 : one byte for each Red, Green and Blue component
+	if (dataPos == 0)      dataPos = 54; // The BMP header is done that way
+
+	// 버퍼 생성
+	data = new unsigned char[imageSize];
+
+	// 파일에서 버퍼로 실제 데이터 넣기. 
+	fread(data, 1, imageSize, file);
+
+	//이제 모두 메모리 안에 있으니까, 파일을 닫습니다. 
+	//Everything is in memory now, the file can be closed
+	fclose(file);
+
+	// OpenGL Texture를 생성합니다. 
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+
+	// 새 텍스처에 "Bind" 합니다 : 이제 모든 텍스처 함수들은 이 텍스처를 수정합니다. 
+	// "Bind" the newly created texture : all future texture functions will modify this texture
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	// OpenGL에게 이미지를 넘겨줍니다. 
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	return textureID;
+}
+
+GLuint CParticleProjectView::loadTextureBMP(const char* filename) {
+	GLuint texture;
+
+	unsigned char* data;
+
+	FILE* file = fopen(filename, "rb");
+
+	if (file == NULL) return 0;
+
+
+	data = (unsigned char*)malloc(Width * Height * 3);
+	//int size = fseek(file,);
+	fread(data, Width * Height * 3, 1, file);
+	fclose(file);
+
+	for (int i = 0; i < Width * Height; ++i)
+	{
+		int index = i * 3;
+		unsigned char B, R;
+		B = data[index];
+		R = data[index + 2];
+
+		data[index] = R;
+		data[index + 2] = B;
+
+	}
+
+
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, Width, Height, GL_RGB, GL_UNSIGNED_BYTE, data);
+	free(data);
+
+	return texture;
+}
+
+
+void CParticleProjectView::DrawCube() {
+	glBegin(GL_QUADS);
+	glColor3f(1, 1, 0);
+	glVertex3f(0.0, 0.0, 1.0);
+	glVertex3f(1.0, 0.0, 1.0);
+	glVertex3f(1.0, 1.0, 1.0);
+	glVertex3f(0.0, 1.0, 1.0);
+
+	glColor3f(0, 1, 1);
+	glVertex3f(1.0, 1.0, 1.0);
+	glVertex3f(1.0, 0.0, 1.0);
+	glVertex3f(1.0, 0.0, 0.0);
+	glVertex3f(1.0, 1.0, 0.0);
+
+	glColor3f(0.5, 0.5, 1);
+	glVertex3f(1.0, 0.0, 1.0);
+	glVertex3f(0.0, 0.0, 1.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(1.0, 0.0, 0.0);
+
+	glColor3f(0.5, 0.5, 1);
+	glVertex3f(0.0, 1.0, 1.0);
+	glVertex3f(1.0, 1.0, 1.0);
+	glVertex3f(1.0, 1.0, 0.0);
+	glVertex3f(0.0, 1.0, 0.0);
+
+	glColor3f(1, 1, 0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.0, 1.0, 0.0);
+	glVertex3f(1.0, 1.0, 0.0);
+	glVertex3f(1.0, 0.0, 0.0);
+
+	glColor3f(1, 0.5, 0.5);
+	glVertex3f(0.0, 1.0, 0.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.0, 0.0, 1.0);
+	glVertex3f(0.0, 1.0, 1.0);
+	glEnd();
+}
+
+void CParticleProjectView::DrawSphere() {
+	GLint circle_points = 100;
+	glBegin(GL_LINE_LOOP);
+	for (int j = 0; j < circle_points; j++) {
+		float angle = 2 * PI * j / circle_points;
+		glVertex2f(cos(angle), sin(angle));
+	}
+	glEnd();
+}
 
 // draw 함수
 // MFC가 자동으로 부르는 onDraw에서 호출되어 그림 그림
@@ -176,54 +333,31 @@ void CParticleProjectView::DrawGLScene(void) {
 	Vector look = cameraPos + cameraFront;
 	gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, look.x, look.y, look.z, cameraUp.x, cameraUp.y, cameraUp.z);
 	// z : 카메라 앞 뒤, y : 높이
+	
+	DrawCube();
 
 	// 잔디바닥
 	glBegin(GL_QUADS);
-		glColor4f(0.f, 1.f, 0.f, 0.7f);
-		glVertex3f(-50.0, 0, 50.0);
-		glVertex3f(50.0, 0, 50.0);
-		glVertex3f(50.0, 0, -50.0);
-		glVertex3f(-50.0, 0, -50.0);
+	glColor4f(0.1f, 0.1f, 0.7f, 0.7f);
+	glVertex3f(-50.0, -50.0, 50.0);
+	glVertex3f(50.0, -50.0, 50.0);
+	glVertex3f(50.0, -50.0, -50.0);
+	glVertex3f(-50.0, -50.0, -50.0);
 	glEnd();
 
-	glBegin(GL_QUADS);
-		glColor3f(1, 1, 0);
-		glVertex3f(0.0, 0.0, 1.0);
-		glVertex3f(1.0, 0.0, 1.0);
-		glVertex3f(1.0, 1.0, 1.0);
-		glVertex3f(0.0, 1.0, 1.0);
+	DrawSphere();
 
-		glColor3f(0, 1, 1);
-		glVertex3f(1.0, 1.0, 1.0);
-		glVertex3f(1.0, 0.0, 1.0);
-		glVertex3f(1.0, 0.0, 0.0);
-		glVertex3f(1.0, 1.0, 0.0);
+	glPushMatrix();
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CW);
+	glTranslatef(-25.0, 0, 25.0);
+	glScalef(50.0, 50.0, 50.0);
+	DrawCube();
+	glDisable(GL_CULL_FACE);
+	glPopMatrix();
 
-		glColor3f(0.5, 0.5, 1);
-		glVertex3f(1.0, 0.0, 1.0);
-		glVertex3f(0.0, 0.0, 1.0);
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(1.0, 0.0, 0.0);
-
-		glColor3f(0.5, 0.5, 1);
-		glVertex3f(0.0, 1.0, 1.0);
-		glVertex3f(1.0, 1.0, 1.0);
-		glVertex3f(1.0, 1.0, 0.0);
-		glVertex3f(0.0, 1.0, 0.0);
-
-		glColor3f(1, 1, 0);
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(0.0, 1.0, 0.0);
-		glVertex3f(1.0, 1.0, 0.0);
-		glVertex3f(1.0, 0.0, 0.0);
-
-		glColor3f(1, 0.5, 0.5);
-		glVertex3f(0.0, 1.0, 0.0);
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(0.0, 0.0, 1.0);
-		glVertex3f(0.0, 1.0, 1.0);
-	glEnd();
-	
+	glDisable(GL_TEXTURE_2D);
 	// 버퍼 스왑 MFC 함수
 	SwapBuffers(m_hDC);
 }

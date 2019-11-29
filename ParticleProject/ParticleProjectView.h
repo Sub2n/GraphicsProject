@@ -26,6 +26,9 @@ public:
 	void InitGL(GLvoid);
 	void ReSizeGLScene(GLsizei width, GLsizei height);
 	void DrawGLScene(void);	// 그림 그리는 거 (여기 draw 코드만 수정하면 됨)
+	GLuint loadTextureBMP(const char* filename);
+	void DrawCube();
+	void DrawSphere();
 
 public:
 	Vector cameraPos, cameraFront, cameraUp; // 카메라
@@ -33,6 +36,7 @@ public:
 	float lastX, lastY;
 	BOOL firstMouse, mouseMove;
 	float pitch, yaw;
+	GLuint m_Textures[];
 
 public:
 	float radians(float degree);
