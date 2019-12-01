@@ -286,9 +286,13 @@ void CParticleProjectView::DrawSkyBox(float width, float height, float length) {
 	glEnable(GL_TEXTURE_2D);
 
 	glGenTextures(5, m_Textures);
-
-	loadTexture("../res/top.bmp", &m_Textures[0]); // top
-	glBindTexture(GL_TEXTURE_2D, m_Textures[0]);
+	loadTexture("../res/top.bmp", &m_Textures[0]);
+	loadTexture("../res/front.bmp", &m_Textures[1]);
+	loadTexture("../res/back.bmp", &m_Textures[2]);
+	loadTexture("../res/left.bmp", &m_Textures[3]);
+	loadTexture("../res/right.bmp", &m_Textures[4]);
+	
+	glBindTexture(GL_TEXTURE_2D, m_Textures[0]); // top
 	glBegin(GL_QUADS);
 	// glNormal3f(0.0f, 1.0f, 0.0f);
 	glTexCoord2d(1.0f, 0.0f); glVertex3f(width, height, -length); // Top Right Of The Quad (Top)
@@ -297,8 +301,8 @@ void CParticleProjectView::DrawSkyBox(float width, float height, float length) {
 	glTexCoord2d(0.0, 0.0f); glVertex3f(width, height, length); // Bottom Right Of The Quad (Top)
 	glEnd();
 
-	loadTexture("../res/right.bmp", &m_Textures[1]); // front
-	glBindTexture(GL_TEXTURE_2D, m_Textures[1]);
+	
+	glBindTexture(GL_TEXTURE_2D, m_Textures[1]); // front
 	glBegin(GL_QUADS);
 	// glNormal3f(0.0f, 0.0f, -1.0f);
 	glTexCoord2d(0.0f, 0.0f); glVertex3f(width, height, length); // Top Right Of The Quad (Front)
@@ -307,17 +311,17 @@ void CParticleProjectView::DrawSkyBox(float width, float height, float length) {
 	glTexCoord2d(0.0f, 1.0f); glVertex3f(width, -height, length); // Bottom Right Of The Quad (Front)
 	glEnd();
 
-	loadTexture("../res/back.bmp", &m_Textures[2]); // back
+	// back
 	glBindTexture(GL_TEXTURE_2D, m_Textures[2]);
 	glBegin(GL_QUADS);
-	// glNormal3f(0.0f, 0.0f, 1.0f);
+	//glNormal3f(0.0f, 0.0f, 1.0f);
 	glTexCoord2d(0.0f, 1.0f); glVertex3f(width, -height, -length); // Bottom Left Of The Quad (Back)
 	glTexCoord2d(1.0f, 1.0f); glVertex3f(-width, -height, -length); // Bottom Right Of The Quad (Back)
 	glTexCoord2d(1.0f, 0.0f); glVertex3f(-width, height, -length); // Top Right Of The Quad (Back)
 	glTexCoord2d(0.0f, 0.0f); glVertex3f(width, height, -length); // Top Left Of The Quad (Back)
 	glEnd();
 
-	loadTexture("../res/left.bmp", &m_Textures[3]); // left
+	// left
 	glBindTexture(GL_TEXTURE_2D, m_Textures[3]);
 	glBegin(GL_QUADS);
 	// glNormal3f(-1.0f, 0.0f, 0.0f);
@@ -327,7 +331,7 @@ void CParticleProjectView::DrawSkyBox(float width, float height, float length) {
 	glTexCoord2d(0.0f, 0.0f); glVertex3f(-width, height, length); // Bottom Right Of The Quad (Left)
 	glEnd();
 
-	loadTexture("../res/right.bmp", &m_Textures[4]); // right
+	// right
 	glBindTexture(GL_TEXTURE_2D, m_Textures[4]);
 	glBegin(GL_QUADS);
 	// glNormal3f(1.0f, 0.0f, 0.0f);
