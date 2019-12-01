@@ -21,12 +21,15 @@
 #include <gl/khrplatform.h>
 
 #include "vector.h"
+#include "Particle.h"
+
 #define PI 3.141592
 #include <vector>
 
 #pragma comment(lib, "OPENGL32.LIB")
 #pragma comment(lib, "GLU32.LIB")
 #pragma comment(lib, "GLAUX.LIB")
+#pragma comment(lib, "legacy_stdio_definitions.lib")
 #pragma comment(lib, "GLUT32.LIB")
 #pragma comment(lib, "GLFW3.LIB")
 

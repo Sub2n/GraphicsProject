@@ -29,19 +29,23 @@ public:
 	GLuint loadTextureBMP(const char* filename);
 	void DrawCube();
 	void DrawSphere();
+	void loadTexture(char *file, GLuint *p_texture);
+	void DrawSkyBox(float width, float height, float length);
 
 public:
+	const GLuint Num_Particles = 5000;
 	Vector cameraPos, cameraFront, cameraUp; // 카메라
+	Particle m_particle; // particle instance
 	float Width, Height;
 	float lastX, lastY;
 	BOOL firstMouse, mouseMove;
 	float pitch, yaw;
-	GLuint m_Textures[];
+	GLuint m_Textures[6];
 
 public:
 	float radians(float degree);
 	Vector rotateVector(float angle, int x, int y, int z, Vector& v);
-
+	
 // 재정의입니다.
 public:
 	virtual void OnDraw(CDC* pDC);  // 이 뷰를 그리기 위해 재정의되었습니다.

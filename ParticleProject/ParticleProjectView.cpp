@@ -103,6 +103,8 @@ void CParticleProjectView::InitGL(GLvoid) {
 	yaw = -90.0f;
 	pitch = 0.0f;
 
+	m_particle.Init();
+
 }
 
 // 화면 크기 바뀔 때마다 다시 계산
@@ -259,6 +261,82 @@ GLuint CParticleProjectView::loadTextureBMP(const char* filename) {
 	return texture;
 }
 
+void CParticleProjectView::loadTexture(char* file, GLuint* p_texture) {
+	FILE* p_File = fopen(file, "r");
+
+	if (p_File) {
+		AUX_RGBImageRec* p_Bitmap = auxDIBImageLoad((LPCWSTR)file);
+
+		glBindTexture(GL_TEXTURE_2D, *p_texture);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, p_Bitmap->sizeX, p_Bitmap->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, p_Bitmap->data);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+		fclose(p_File);
+	}
+	return;
+}
+
+void CParticleProjectView::DrawSkyBox(float width, float height, float length) {
+	glEnable(GL_TEXTURE_2D);
+
+	glGenTextures(5, m_Textures);
+
+	loadTexture("../res/top.bmp", &m_Textures[0]); // top
+	glBindTexture(GL_TEXTURE_2D, m_Textures[0]);
+	glBegin(GL_QUADS);
+	// glNormal3f(0.0f, 1.0f, 0.0f);
+	glTexCoord2d(1.0f, 0.0f); glVertex3f(width, height, -length); // Top Right Of The Quad (Top)
+	glTexCoord2d(1.0f, 1.0f); glVertex3f(-width, height, -length); // Top Left Of The Quad (Top)
+	glTexCoord2d(0.0, 1.0f); glVertex3f(-width, height, length); // Bottom Left Of The Quad (Top)
+	glTexCoord2d(0.0, 0.0f); glVertex3f(width, height, length); // Bottom Right Of The Quad (Top)
+	glEnd();
+
+	loadTexture("../res/right.bmp", &m_Textures[1]); // front
+	glBindTexture(GL_TEXTURE_2D, m_Textures[1]);
+	glBegin(GL_QUADS);
+	// glNormal3f(0.0f, 0.0f, -1.0f);
+	glTexCoord2d(0.0f, 0.0f); glVertex3f(width, height, length); // Top Right Of The Quad (Front)
+	glTexCoord2d(1.0f, 0.0f); glVertex3f(-width, height, length); // Top Left Of The Quad (Front)
+	glTexCoord2d(1.0f, 1.0f); glVertex3f(-width, -height, length); // Bottom Left Of The Quad (Front)
+	glTexCoord2d(0.0f, 1.0f); glVertex3f(width, -height, length); // Bottom Right Of The Quad (Front)
+	glEnd();
+
+	loadTexture("../res/back.bmp", &m_Textures[2]); // back
+	glBindTexture(GL_TEXTURE_2D, m_Textures[2]);
+	glBegin(GL_QUADS);
+	// glNormal3f(0.0f, 0.0f, 1.0f);
+	glTexCoord2d(0.0f, 1.0f); glVertex3f(width, -height, -length); // Bottom Left Of The Quad (Back)
+	glTexCoord2d(1.0f, 1.0f); glVertex3f(-width, -height, -length); // Bottom Right Of The Quad (Back)
+	glTexCoord2d(1.0f, 0.0f); glVertex3f(-width, height, -length); // Top Right Of The Quad (Back)
+	glTexCoord2d(0.0f, 0.0f); glVertex3f(width, height, -length); // Top Left Of The Quad (Back)
+	glEnd();
+
+	loadTexture("../res/left.bmp", &m_Textures[3]); // left
+	glBindTexture(GL_TEXTURE_2D, m_Textures[3]);
+	glBegin(GL_QUADS);
+	// glNormal3f(-1.0f, 0.0f, 0.0f);
+	glTexCoord2d(1.0f, 0.0f); glVertex3f(-width, height, -length); // Top Right Of The Quad (Left)
+	glTexCoord2d(1.0f, 1.0f); glVertex3f(-width, -height, -length); // Top Left Of The Quad (Left)
+	glTexCoord2d(0.0f, 1.0f); glVertex3f(-width, -height, length); // Bottom Left Of The Quad (Left)
+	glTexCoord2d(0.0f, 0.0f); glVertex3f(-width, height, length); // Bottom Right Of The Quad (Left)
+	glEnd();
+
+	loadTexture("../res/right.bmp", &m_Textures[4]); // right
+	glBindTexture(GL_TEXTURE_2D, m_Textures[4]);
+	glBegin(GL_QUADS);
+	// glNormal3f(1.0f, 0.0f, 0.0f);
+	glTexCoord2d(0.0f, 0.0f); glVertex3f(width, height, -length); // Top Right Of The Quad (Right)
+	glTexCoord2d(1.0f, 0.0f); glVertex3f(width, height, length); // Top Left Of The Quad (Right)
+	glTexCoord2d(1.0f, 1.0f); glVertex3f(width, -height, length); // Bottom Left Of The Quad (Right)
+	glTexCoord2d(0.0f, 1.0f); glVertex3f(width, -height, -length); // Bottom Right Of The Quad (Right)
+	glEnd();
+}
 
 void CParticleProjectView::DrawCube() {
 	glBegin(GL_QUADS);
@@ -347,23 +425,55 @@ void CParticleProjectView::DrawGLScene(void) {
 	gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, look.x, look.y, look.z, cameraUp.x, cameraUp.y, cameraUp.z);
 	// z : 카메라 앞 뒤, y : 높이
 	
-	DrawCube();
+	glEnable(GL_LIGHT0);
 
-	// 잔디바닥
-	glPushMatrix();
-	glTranslatef(0.0, 5.0, 0.0);
-	DrawSphere();
-	glPopMatrix();
+	GLfloat light_ambient[] = { 0.05, 0.05, 0.05, 1.0 };
+	GLfloat light_diffuse[] = { 0.25, 0.25, 1.0, 1.0 };
+	GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat light_position[] = { 50.0, 25.0, 5.0, 1.0 };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+	GLfloat no_mat[] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat mat_diffuse[] = { 0.1, 0.5, 0.8, 1.0 };
+	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat high_shininess[] = { 100.0 };
+	glMaterialfv(GL_FRONT, GL_AMBIENT, no_mat);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
+	glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
 
 	glPushMatrix();
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
-	glTranslatef(0, 24.5, 0);
-	glScalef(50.0, 50.0, 50.0);
-	DrawCube();
+	DrawSkyBox(50.0, 50.0, 50.0);
 	glDisable(GL_CULL_FACE);
 	glPopMatrix();
+
+	DrawCube();
+
+	glPushMatrix();
+	glTranslatef(0.0, 5.0, 0.0);
+	DrawSphere();
+	glPopMatrix();
+
+	/*
+		glPushMatrix();
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CW);
+		glTranslatef(0, 24.5, 0);
+		glScalef(50.0, 50.0, 50.0);
+		DrawCube();
+		glDisable(GL_CULL_FACE);
+		glPopMatrix();
+	*/
+
+	// m_particle.DrawParticle();
 
 	glDisable(GL_TEXTURE_2D);
 	// 버퍼 스왑 MFC 함수
@@ -533,6 +643,11 @@ void CParticleProjectView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	{
 		cameraPos -= cameraFront * cameraSpeed;
 		break;
+	}
+	
+	case VK_RETURN: {
+		m_particle.rp = !m_particle.rp;            // Set Flag Telling Us It's Pressed
+		m_particle.rainbow = !m_particle.rainbow;       // Toggle Rainbow Mode On / Off
 	}
 	}
 	CView::OnKeyDown(nChar, nRepCnt, nFlags);

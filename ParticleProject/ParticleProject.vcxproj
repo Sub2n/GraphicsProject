@@ -94,10 +94,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>D:\Downloads\stb-master\stb-master;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>GLAUX.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\Microsoft Visual Studio\2019\Professional\VC\Auxiliary\VS\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -194,6 +196,7 @@
     <ClInclude Include="khrplatform.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="OutputWnd.h" />
+    <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleProject.h" />
     <ClInclude Include="ParticleProjectDoc.h" />
     <ClInclude Include="ParticleProjectView.h" />
@@ -210,6 +213,7 @@
     <ClCompile Include="FileView.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="OutputWnd.cpp" />
+    <ClCompile Include="Particle.cpp" />
     <ClCompile Include="ParticleProject.cpp" />
     <ClCompile Include="ParticleProjectDoc.cpp" />
     <ClCompile Include="ParticleProjectView.cpp" />
