@@ -393,9 +393,9 @@ void CParticleProjectView::DrawCube() {
 	glEnd();
 }
 
-void CParticleProjectView::DrawSphere() {
+void CParticleProjectView::DrawSphere(float r) {
 	GLfloat x, y, z, alpha, beta; // Storage for coordinates and angles        
-	GLfloat radius = 1.0f;
+	GLfloat radius = r;
 	int gradation = 20;
 
 	for (alpha = 0.0; alpha < PI; alpha += PI / gradation)
@@ -415,6 +415,7 @@ void CParticleProjectView::DrawSphere() {
 		glEnd();
 	}
 }
+
 
 // draw 함수
 // MFC가 자동으로 부르는 onDraw에서 호출되어 그림 그림
@@ -441,16 +442,16 @@ void CParticleProjectView::DrawGLScene(void) {
 	
 	if (m_posLight == TRUE || m_spotLight == TRUE) {
 		glEnable(GL_LIGHTING);
-		GLfloat light1_ambient[] = { 0.3, 0.7, 0.5, 1.0 };
-		GLfloat light1_diffuse[] = { 0.9, 0.5, 0.5, 1.0 };
-		GLfloat light1_position[] = { 3.0, 4.0, 5.0, 1.0 }; // x,y,z,w w=1이면 positional
+		GLfloat light1_ambient[] = { 0.5, 0.7, 0.3, 1.0 };
+		GLfloat light1_diffuse[] = { 0.5, 0.5, 0.9, 1.0 };
+		GLfloat light1_position[] = { 3.0, 7.0, 10.0, 1.0 }; // x,y,z,w w=1이면 positional
 		GLfloat light1_specular[] = { 0.9, 0.9, 0.9, 1.0 };
 		GLfloat light1_shiness[] = { 50.0 };
 
 		GLfloat spot_ambient[] = { 0.7, 0.7, 0.7, 1.0 };
 		GLfloat spot_diffuse[] = { 0.8, 0.8, 0.9, 1.0 };
 		GLfloat spot_specular[] = { 0.7, 0.7, 0.7, 1.0 };
-		GLfloat spot_position[] = { 5.0, 5.0, 5.0, 1.0 }; // spot light는 positional light의 특별한 경우! w = 1 해줘야했음
+		GLfloat spot_position[] = { 7.0, 7.0, 10.0, 1.0 }; // spot light는 positional light의 특별한 경우! w = 1 해줘야했음
 		GLfloat spot_direction[] = { -1.0, -1.0, 1.0 };
 		if (m_posLight == TRUE) {
 			glEnable(GL_LIGHT1);
@@ -474,7 +475,7 @@ void CParticleProjectView::DrawGLScene(void) {
 			glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, 10.0);
 		}
 
-		GLfloat mat_ambient[] = { 0.8, 0.2, 0.3, 1.0 };
+		GLfloat mat_ambient[] = { 0.3, 0.2, 0.8, 1.0 };
 		GLfloat mat_diffuse[] = { 0.7, 0.7, 0.7, 1.0 };
 		GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 		GLfloat mat_shiness[] = { 30.0 };
@@ -485,25 +486,22 @@ void CParticleProjectView::DrawGLScene(void) {
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shiness);
 
 	}
-	
+
+	glPushMatrix();
+	glScalef(1.5, 1.5, 1.5);
 	m_particle.DrawParticle();
-
-	glPushMatrix();
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CW);
-	// DrawSkyBox(50.0, 50.0, 50.0);
-	glDisable(GL_CULL_FACE);
 	glPopMatrix();
 
-	DrawCube();
+	DrawSphere(1.5f);
 
 	glPushMatrix();
-	glTranslatef(0.0, 5.0, 0.0);
-	DrawSphere();
+	glTranslatef(0.0, 2.5, 0.0);
+	DrawSphere(1.0f);
 	glPopMatrix();
 
-	glDisable(GL_LIGHT0);
+
+
+	glDisable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
 	// 버퍼 스왑 MFC 함수
 	SwapBuffers(m_hDC);

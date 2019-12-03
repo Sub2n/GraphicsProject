@@ -28,7 +28,7 @@ public:
 	void DrawGLScene(void);	// 그림 그리는 거 (여기 draw 코드만 수정하면 됨)
 	GLuint loadTextureBMP(const char* filename);
 	void DrawCube();
-	void DrawSphere();
+	void DrawSphere(float r);
 	void loadTexture(char *file, GLuint *p_texture);
 	void DrawSkyBox(float width, float height, float length);
 
