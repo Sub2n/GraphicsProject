@@ -190,11 +190,13 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="ClassView.h" />
+    <ClInclude Include="ElapsedTime.h" />
     <ClInclude Include="FileView.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="khrplatform.h" />
     <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="mParticle.h" />
     <ClInclude Include="OutputWnd.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleProject.h" />

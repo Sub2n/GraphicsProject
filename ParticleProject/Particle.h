@@ -1,7 +1,7 @@
 #pragma once
 #include "ParticleProject.h"
 
-#define MAX_PARTICLES   3000        // Number Of Particles To Create ( NEW )
+#define MAX_PARTICLES 100000        // Number Of Particles To Create ( NEW )
 
 class Particle
 {
@@ -10,14 +10,13 @@ public:
 	BOOL rainbow = TRUE;			// Rainbow Mode?    ( ADD )
 	BOOL sp = FALSE;						// Spacebar Pressed?    ( ADD )
 	BOOL rp = FALSE;						// Return Key Pressed?  ( ADD )
-	float   slowdown = 5.0f;          // Slow Down Particles
+	float   slowdown = 10.0f;          // Slow Down Particles
 	float   xspeed;					// Base X Speed (To Allow Keyboard Direction Of Tail)
 	float   yspeed;					// Base Y Speed (To Allow Keyboard Direction Of Tail)
 	float   zoom = -40.0f;            // Used To Zoom Out
 	GLuint  loop;               // Misc Loop Variable
 	GLuint  col;                // Current Color Selection
 	GLuint  delay;              // Rainbow Effect Delay
-	GLuint  texture[1];         // Storage For Our Particle Texture
 	float xPos, yPos, zPos;
 	Particle(float px = 0, float py = 0, float pz = 0) {
 		xPos = px;

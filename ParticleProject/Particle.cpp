@@ -35,6 +35,8 @@ BOOL Particle::Init() {
 		particle[loop].zg = 0.0f;                     // Set Pull On Z Axis To Zero
 	}
 	col = 0;
+	xspeed = 4.1f;
+	yspeed = 0.3f;
 	return TRUE;                                // Initialization Went OK
 }
 
@@ -49,10 +51,10 @@ void Particle::DrawParticle() {
 			// Draw The Particle Using Our RGB Values, Fade The Particle Based On It's Life
 			glColor4f(particle[loop].r, particle[loop].g, particle[loop].b, particle[loop].life);
 			glBegin(GL_TRIANGLE_STRIP);             // Build Quad From A Triangle Strip
-				glVertex3f(x + 0.15f, y + 0.15f, z); // Top Right
-				glVertex3f(x - 0.15f, y + 0.15f, z); // Top Left
-				glVertex3f(x + 0.15f, y - 0.15f, z); // Bottom Right
-				glVertex3f(x - 0.15f, y - 0.15f, z); // Bottom Left
+				glVertex3f(x + 0.005f, y + 0.005f, z); // Top Right
+				glVertex3f(x - 0.005f, y + 0.005f, z); // Top Left
+				glVertex3f(x + 0.005f, y - 0.005f, z); // Bottom Right
+				glVertex3f(x - 0.005f, y - 0.005f, z); // Bottom Left
 			glEnd();                        // Done Building Triangle Strip
 			particle[loop].x += particle[loop].xi / (slowdown * 1000);    // Move On The X Axis By X Speed
 			particle[loop].y += particle[loop].yi / (slowdown * 1000);    // Move On The Y Axis By Y Speed

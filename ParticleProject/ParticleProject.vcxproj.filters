@@ -57,13 +57,19 @@
     <ClInclude Include="Vector.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="khrplatform.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Particle.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="mParticle.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ElapsedTime.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
