@@ -398,6 +398,7 @@ void CParticleProjectView::DrawSphere(float r) {
 	GLfloat radius = r;
 	int gradation = 20;
 
+	glColor3f(0.5, 0.5, 0.9);
 	for (alpha = 0.0; alpha < PI; alpha += PI / gradation)
 	{
 		glBegin(GL_TRIANGLE_STRIP);
@@ -492,11 +493,11 @@ void CParticleProjectView::DrawGLScene(void) {
 	m_particle.DrawParticle();
 	glPopMatrix();
 
-	DrawSphere(1.5f);
+	DrawSphere(1.0f);
 
 	glPushMatrix();
-	glTranslatef(0.0, 2.5, 0.0);
-	DrawSphere(1.0f);
+	glTranslatef(0.0, 1.5, 0.0);
+	DrawSphere(0.5f);
 	glPopMatrix();
 
 

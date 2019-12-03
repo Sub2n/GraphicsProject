@@ -31,7 +31,7 @@ BOOL Particle::Init() {
 		particle[loop].yi = float((rand() % 50) - 25.0f) * 10.0f;       // Random Speed On Y Axis
 		particle[loop].zi = float((rand() % 50) - 25.0f) * 10.0f;       // Random Speed On Z Axis
 		particle[loop].xg = 0.0f;                     // Set Horizontal Pull To Zero
-		particle[loop].yg = -0.8f;                    // Set Vertical Pull Downward
+		particle[loop].yg = -0.5f;                    // Set Vertical Pull Downward
 		particle[loop].zg = 0.0f;                     // Set Pull On Z Axis To Zero
 	}
 	col = 0;

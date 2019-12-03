@@ -35,7 +35,7 @@ public:
 public:
 	const GLuint Num_Particles = 5000;
 	Vector cameraPos, cameraFront, cameraUp; // 카메라
-	Particle m_particle = Particle(0.0, 5.0, 0.0); // particle instance
+	Particle m_particle = Particle(0.0, 3.0, 0.0); // particle instance
 	float Width, Height;
 	float lastX, lastY;
 	BOOL firstMouse, mouseMove;
