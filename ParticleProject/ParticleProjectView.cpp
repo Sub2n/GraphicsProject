@@ -36,6 +36,8 @@ BEGIN_MESSAGE_MAP(CParticleProjectView, CView)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEWHEEL()
+	ON_COMMAND(ID_SPOTLIGHT, &CParticleProjectView::OnSpotlight)
+	ON_COMMAND(ID_POSITIONAL, &CParticleProjectView::OnPositional)
 END_MESSAGE_MAP()
 
 BOOL CParticleProjectView::SetDevicePixelFormat(HDC hdc) {
@@ -99,11 +101,23 @@ void CParticleProjectView::InitGL(GLvoid) {
 	cameraUp = u;
 
 	firstMouse = mouseMove = TRUE;
+	
+	m_posLight = m_spotLight = FALSE;
 
 	yaw = -90.0f;
 	pitch = 0.0f;
 
 	m_particle.Init();
+
+
+	glEnable(GL_TEXTURE_2D);
+
+	glGenTextures(5, m_Textures);
+	loadTexture("../res/top.bmp", &m_Textures[0]);
+	loadTexture("../res/front.bmp", &m_Textures[1]);
+	loadTexture("../res/back.bmp", &m_Textures[2]);
+	loadTexture("../res/left.bmp", &m_Textures[3]);
+	loadTexture("../res/right.bmp", &m_Textures[4]);
 
 }
 
@@ -283,15 +297,13 @@ void CParticleProjectView::loadTexture(char* file, GLuint* p_texture) {
 }
 
 void CParticleProjectView::DrawSkyBox(float width, float height, float length) {
-	glEnable(GL_TEXTURE_2D);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glGenTextures(5, m_Textures);
-	loadTexture("../res/top.bmp", &m_Textures[0]);
-	loadTexture("../res/front.bmp", &m_Textures[1]);
-	loadTexture("../res/back.bmp", &m_Textures[2]);
-	loadTexture("../res/left.bmp", &m_Textures[3]);
-	loadTexture("../res/right.bmp", &m_Textures[4]);
-	
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	glColor3f(0.4, 0.4, 0.7);
+
 	glBindTexture(GL_TEXTURE_2D, m_Textures[0]); // top
 	glBegin(GL_QUADS);
 	// glNormal3f(0.0f, 1.0f, 0.0f);
@@ -301,7 +313,6 @@ void CParticleProjectView::DrawSkyBox(float width, float height, float length) {
 	glTexCoord2d(0.0, 0.0f); glVertex3f(width, height, length); // Bottom Right Of The Quad (Top)
 	glEnd();
 
-	
 	glBindTexture(GL_TEXTURE_2D, m_Textures[1]); // front
 	glBegin(GL_QUADS);
 	// glNormal3f(0.0f, 0.0f, -1.0f);
@@ -412,7 +423,6 @@ void CParticleProjectView::DrawGLScene(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
-
 	glViewport(0, 0, Width, Height); // 그림이 그려지는 영역의 픽셀단위 크기 재설정
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -429,32 +439,60 @@ void CParticleProjectView::DrawGLScene(void) {
 	gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, look.x, look.y, look.z, cameraUp.x, cameraUp.y, cameraUp.z);
 	// z : 카메라 앞 뒤, y : 높이
 	
-	glEnable(GL_LIGHT0);
+	if (m_posLight == TRUE || m_spotLight == TRUE) {
+		glEnable(GL_LIGHTING);
+		GLfloat light1_ambient[] = { 0.3, 0.7, 0.5, 1.0 };
+		GLfloat light1_diffuse[] = { 0.9, 0.5, 0.5, 1.0 };
+		GLfloat light1_position[] = { 3.0, 4.0, 5.0, 1.0 }; // x,y,z,w w=1이면 positional
+		GLfloat light1_specular[] = { 0.9, 0.9, 0.9, 1.0 };
+		GLfloat light1_shiness[] = { 50.0 };
 
-	GLfloat light_ambient[] = { 0.05, 0.05, 0.05, 1.0 };
-	GLfloat light_diffuse[] = { 0.25, 0.25, 1.0, 1.0 };
-	GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat light_position[] = { 50.0, 25.0, 5.0, 1.0 };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+		GLfloat spot_ambient[] = { 0.7, 0.7, 0.7, 1.0 };
+		GLfloat spot_diffuse[] = { 0.8, 0.8, 0.9, 1.0 };
+		GLfloat spot_specular[] = { 0.7, 0.7, 0.7, 1.0 };
+		GLfloat spot_position[] = { 5.0, 5.0, 5.0, 1.0 }; // spot light는 positional light의 특별한 경우! w = 1 해줘야했음
+		GLfloat spot_direction[] = { -1.0, -1.0, 1.0 };
+		if (m_posLight == TRUE) {
+			glEnable(GL_LIGHT1);
 
-	GLfloat no_mat[] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat mat_diffuse[] = { 0.1, 0.5, 0.8, 1.0 };
-	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat high_shininess[] = { 100.0 };
-	glMaterialfv(GL_FRONT, GL_AMBIENT, no_mat);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
-	glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
+			glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
+			glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
+			glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
+			glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
+			glLightfv(GL_LIGHT1, GL_SHININESS, light1_shiness);
+		}
+
+		if (m_spotLight == TRUE) {
+			glEnable(GL_LIGHT2);
+
+			glLightfv(GL_LIGHT2, GL_POSITION, spot_position);
+			glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, spot_direction);
+			glLightfv(GL_LIGHT2, GL_AMBIENT, spot_ambient);
+			glLightfv(GL_LIGHT2, GL_DIFFUSE, spot_diffuse);
+			glLightfv(GL_LIGHT2, GL_SPECULAR, spot_specular);
+			glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 10.0);
+			glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, 10.0);
+		}
+
+		GLfloat mat_ambient[] = { 0.8, 0.2, 0.3, 1.0 };
+		GLfloat mat_diffuse[] = { 0.7, 0.7, 0.7, 1.0 };
+		GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+		GLfloat mat_shiness[] = { 30.0 };
+
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shiness);
+
+	}
+	
+	m_particle.DrawParticle();
 
 	glPushMatrix();
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
-	DrawSkyBox(50.0, 50.0, 50.0);
+	// DrawSkyBox(50.0, 50.0, 50.0);
 	glDisable(GL_CULL_FACE);
 	glPopMatrix();
 
@@ -465,20 +503,7 @@ void CParticleProjectView::DrawGLScene(void) {
 	DrawSphere();
 	glPopMatrix();
 
-	/*
-		glPushMatrix();
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CW);
-		glTranslatef(0, 24.5, 0);
-		glScalef(50.0, 50.0, 50.0);
-		DrawCube();
-		glDisable(GL_CULL_FACE);
-		glPopMatrix();
-	*/
-
-	// m_particle.DrawParticle();
-
+	glDisable(GL_LIGHT0);
 	glDisable(GL_TEXTURE_2D);
 	// 버퍼 스왑 MFC 함수
 	SwapBuffers(m_hDC);
@@ -515,6 +540,7 @@ void CParticleProjectView::OnDraw(CDC* /*pDC*/)
 
 	// TODO: 여기에 원시 데이터에 대한 그리기 코드를 추가합니다.
 	DrawGLScene();
+
 	Invalidate(FALSE);
 }
 
@@ -649,9 +675,8 @@ void CParticleProjectView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		break;
 	}
 	
-	case VK_RETURN: {
-		m_particle.rp = !m_particle.rp;            // Set Flag Telling Us It's Pressed
-		m_particle.rainbow = !m_particle.rainbow;       // Toggle Rainbow Mode On / Off
+	case VK_TAB: {
+		m_particle.b_tab = !m_particle.b_tab;
 	}
 	}
 	CView::OnKeyDown(nChar, nRepCnt, nFlags);
@@ -726,4 +751,19 @@ BOOL CParticleProjectView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	}
 
 	return CView::OnMouseWheel(nFlags, zDelta, pt);
+}
+
+
+
+void CParticleProjectView::OnSpotlight()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	m_spotLight = !m_spotLight;
+}
+
+
+void CParticleProjectView::OnPositional()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	m_posLight = !m_posLight;
 }

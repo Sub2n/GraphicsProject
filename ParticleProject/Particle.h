@@ -1,16 +1,16 @@
 #pragma once
 #include "ParticleProject.h"
 
-#define MAX_PARTICLES   1000        // Number Of Particles To Create ( NEW )
+#define MAX_PARTICLES   3000        // Number Of Particles To Create ( NEW )
 
 class Particle
 {
 public:
-	bool    keys[256];          // Array Used For The Keyboard Routine
+	BOOL b_tab = FALSE;
 	BOOL rainbow = TRUE;			// Rainbow Mode?    ( ADD )
 	BOOL sp = FALSE;						// Spacebar Pressed?    ( ADD )
 	BOOL rp = FALSE;						// Return Key Pressed?  ( ADD )
-	float   slowdown = 2.0f;          // Slow Down Particles
+	float   slowdown = 5.0f;          // Slow Down Particles
 	float   xspeed;					// Base X Speed (To Allow Keyboard Direction Of Tail)
 	float   yspeed;					// Base Y Speed (To Allow Keyboard Direction Of Tail)
 	float   zoom = -40.0f;            // Used To Zoom Out
@@ -18,6 +18,12 @@ public:
 	GLuint  col;                // Current Color Selection
 	GLuint  delay;              // Rainbow Effect Delay
 	GLuint  texture[1];         // Storage For Our Particle Texture
+	float xPos, yPos, zPos;
+	Particle(float px = 0, float py = 0, float pz = 0) {
+		xPos = px;
+		yPos = py;
+		zPos = pz;
+	}
 	typedef struct                      // Create A Structure For Particle
 	{
 		bool    active;                 // Active (Yes/No)

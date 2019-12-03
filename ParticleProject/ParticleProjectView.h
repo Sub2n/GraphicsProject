@@ -35,12 +35,13 @@ public:
 public:
 	const GLuint Num_Particles = 5000;
 	Vector cameraPos, cameraFront, cameraUp; // 카메라
-	Particle m_particle; // particle instance
+	Particle m_particle = Particle(0.0, 5.0, 0.0); // particle instance
 	float Width, Height;
 	float lastX, lastY;
 	BOOL firstMouse, mouseMove;
 	float pitch, yaw;
 	GLuint m_Textures[6];
+	BOOL m_posLight, m_spotLight;
 
 public:
 	float radians(float degree);
@@ -78,6 +79,8 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg void OnSpotlight();
+	afx_msg void OnPositional();
 };
 
 #ifndef _DEBUG  // ParticleProjectView.cpp의 디버그 버전
