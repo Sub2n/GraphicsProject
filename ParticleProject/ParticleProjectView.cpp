@@ -36,8 +36,10 @@ BEGIN_MESSAGE_MAP(CParticleProjectView, CView)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEWHEEL()
-	ON_COMMAND(ID_SPOTLIGHT, &CParticleProjectView::OnSpotlight)
-	ON_COMMAND(ID_POSITIONAL, &CParticleProjectView::OnPositional)
+	ON_COMMAND(ID_LightOn, &CParticleProjectView::OnLighton)
+	ON_COMMAND(ID_LightOff, &CParticleProjectView::OnLightoff)
+	ON_COMMAND(ID_THREE_ONE, &CParticleProjectView::OnThreeOne)
+	ON_COMMAND(ID_THREE_THREE, &CParticleProjectView::OnThreeThree)
 END_MESSAGE_MAP()
 
 BOOL CParticleProjectView::SetDevicePixelFormat(HDC hdc) {
@@ -92,7 +94,7 @@ void CParticleProjectView::InitGL(GLvoid) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Vector p(0.0f, 3.0f, 10.0f);
+	Vector p(0.0f, 2.5f, 10.0f);
 	Vector f(0.0f, 0.0f, -1.0f);
 	Vector u(0.0f, 1.0f, 0.0f);
 
@@ -102,22 +104,12 @@ void CParticleProjectView::InitGL(GLvoid) {
 
 	firstMouse = mouseMove = TRUE;
 	
-	m_posLight = m_spotLight = FALSE;
-
 	yaw = -90.0f;
 	pitch = 0.0f;
 
 	m_particle.Init();
 
-
-	glEnable(GL_TEXTURE_2D);
-
-	glGenTextures(5, m_Textures);
-	loadTexture("../res/top.bmp", &m_Textures[0]);
-	loadTexture("../res/front.bmp", &m_Textures[1]);
-	loadTexture("../res/back.bmp", &m_Textures[2]);
-	loadTexture("../res/left.bmp", &m_Textures[3]);
-	loadTexture("../res/right.bmp", &m_Textures[4]);
+	b_Light = TRUE;
 
 }
 
@@ -169,190 +161,6 @@ Vector CParticleProjectView::rotateVector(float angle, int x, int y, int z, Vect
 	return result;
 }
 
-GLuint loadBMP_custom(const char* imagepath) {
-	// Data read from the header of the BMP file
-	unsigned char header[54]; // Each BMP file begins by a 54-bytes header
-	unsigned int dataPos;     // Position in the file where the actual data begins
-	unsigned int width, height;
-	unsigned int imageSize;   // = width*height*3
-	// Actual RGB data
-	unsigned char* data;
-
-	// Open the file
-	FILE* file = fopen(imagepath, "rb");
-	if (!file) { printf("Image could not be opened\n"); return 0; }
-
-	if (fread(header, 1, 54, file) != 54) { // If not 54 bytes read : problem
-		printf("Not a correct BMP file\n");
-		return false;
-	}
-
-	if (header[0] != 'B' || header[1] != 'M') {
-		printf("Not a correct BMP file\n");
-		return 0;
-	}
-
-	// 바이트 배열에서 int 변수를 읽습니다. 
-	dataPos = *(int*) & (header[0x0A]);
-	imageSize = *(int*) & (header[0x22]);
-	width = *(int*) & (header[0x12]);
-	height = *(int*) & (header[0x16]);
-
-	// 몇몇 BMP 파일들은 포맷이 잘못되었습니다. 정보가 누락됬는지 확인해봅니다. 
-// Some BMP files are misformatted, guess missing information
-	if (imageSize == 0)    imageSize = width * height * 3; // 3 : one byte for each Red, Green and Blue component
-	if (dataPos == 0)      dataPos = 54; // The BMP header is done that way
-
-	// 버퍼 생성
-	data = new unsigned char[imageSize];
-
-	// 파일에서 버퍼로 실제 데이터 넣기. 
-	fread(data, 1, imageSize, file);
-
-	//이제 모두 메모리 안에 있으니까, 파일을 닫습니다. 
-	//Everything is in memory now, the file can be closed
-	fclose(file);
-
-	// OpenGL Texture를 생성합니다. 
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-
-	// 새 텍스처에 "Bind" 합니다 : 이제 모든 텍스처 함수들은 이 텍스처를 수정합니다. 
-	// "Bind" the newly created texture : all future texture functions will modify this texture
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
-	// OpenGL에게 이미지를 넘겨줍니다. 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	return textureID;
-}
-
-GLuint CParticleProjectView::loadTextureBMP(const char* filename) {
-	GLuint texture;
-
-	unsigned char* data;
-
-	FILE* file = fopen(filename, "rb");
-
-	if (file == NULL) return 0;
-
-
-	data = (unsigned char*)malloc(Width * Height * 3);
-	//int size = fseek(file,);
-	fread(data, Width * Height * 3, 1, file);
-	fclose(file);
-
-	for (int i = 0; i < Width * Height; ++i)
-	{
-		int index = i * 3;
-		unsigned char B, R;
-		B = data[index];
-		R = data[index + 2];
-
-		data[index] = R;
-		data[index + 2] = B;
-
-	}
-
-
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, Width, Height, GL_RGB, GL_UNSIGNED_BYTE, data);
-	free(data);
-
-	return texture;
-}
-
-void CParticleProjectView::loadTexture(char* file, GLuint* p_texture) {
-	FILE* p_File = fopen(file, "r");
-
-	if (p_File) {
-		AUX_RGBImageRec* p_Bitmap = auxDIBImageLoad((LPCWSTR)file);
-
-		glBindTexture(GL_TEXTURE_2D, *p_texture);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, p_Bitmap->sizeX, p_Bitmap->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, p_Bitmap->data);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-
-		fclose(p_File);
-	}
-	return;
-}
-
-void CParticleProjectView::DrawSkyBox(float width, float height, float length) {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-	glColor3f(0.4, 0.4, 0.7);
-
-	glBindTexture(GL_TEXTURE_2D, m_Textures[0]); // top
-	glBegin(GL_QUADS);
-	// glNormal3f(0.0f, 1.0f, 0.0f);
-	glTexCoord2d(1.0f, 0.0f); glVertex3f(width, height, -length); // Top Right Of The Quad (Top)
-	glTexCoord2d(1.0f, 1.0f); glVertex3f(-width, height, -length); // Top Left Of The Quad (Top)
-	glTexCoord2d(0.0, 1.0f); glVertex3f(-width, height, length); // Bottom Left Of The Quad (Top)
-	glTexCoord2d(0.0, 0.0f); glVertex3f(width, height, length); // Bottom Right Of The Quad (Top)
-	glEnd();
-
-	glBindTexture(GL_TEXTURE_2D, m_Textures[1]); // front
-	glBegin(GL_QUADS);
-	// glNormal3f(0.0f, 0.0f, -1.0f);
-	glTexCoord2d(0.0f, 0.0f); glVertex3f(width, height, length); // Top Right Of The Quad (Front)
-	glTexCoord2d(1.0f, 0.0f); glVertex3f(-width, height, length); // Top Left Of The Quad (Front)
-	glTexCoord2d(1.0f, 1.0f); glVertex3f(-width, -height, length); // Bottom Left Of The Quad (Front)
-	glTexCoord2d(0.0f, 1.0f); glVertex3f(width, -height, length); // Bottom Right Of The Quad (Front)
-	glEnd();
-
-	// back
-	glBindTexture(GL_TEXTURE_2D, m_Textures[2]);
-	glBegin(GL_QUADS);
-	//glNormal3f(0.0f, 0.0f, 1.0f);
-	glTexCoord2d(0.0f, 1.0f); glVertex3f(width, -height, -length); // Bottom Left Of The Quad (Back)
-	glTexCoord2d(1.0f, 1.0f); glVertex3f(-width, -height, -length); // Bottom Right Of The Quad (Back)
-	glTexCoord2d(1.0f, 0.0f); glVertex3f(-width, height, -length); // Top Right Of The Quad (Back)
-	glTexCoord2d(0.0f, 0.0f); glVertex3f(width, height, -length); // Top Left Of The Quad (Back)
-	glEnd();
-
-	// left
-	glBindTexture(GL_TEXTURE_2D, m_Textures[3]);
-	glBegin(GL_QUADS);
-	// glNormal3f(-1.0f, 0.0f, 0.0f);
-	glTexCoord2d(1.0f, 0.0f); glVertex3f(-width, height, -length); // Top Right Of The Quad (Left)
-	glTexCoord2d(1.0f, 1.0f); glVertex3f(-width, -height, -length); // Top Left Of The Quad (Left)
-	glTexCoord2d(0.0f, 1.0f); glVertex3f(-width, -height, length); // Bottom Left Of The Quad (Left)
-	glTexCoord2d(0.0f, 0.0f); glVertex3f(-width, height, length); // Bottom Right Of The Quad (Left)
-	glEnd();
-
-	// right
-	glBindTexture(GL_TEXTURE_2D, m_Textures[4]);
-	glBegin(GL_QUADS);
-	// glNormal3f(1.0f, 0.0f, 0.0f);
-	glTexCoord2d(0.0f, 0.0f); glVertex3f(width, height, -length); // Top Right Of The Quad (Right)
-	glTexCoord2d(1.0f, 0.0f); glVertex3f(width, height, length); // Top Left Of The Quad (Right)
-	glTexCoord2d(1.0f, 1.0f); glVertex3f(width, -height, length); // Bottom Left Of The Quad (Right)
-	glTexCoord2d(0.0f, 1.0f); glVertex3f(width, -height, -length); // Bottom Right Of The Quad (Right)
-	glEnd();
-}
-
 void CParticleProjectView::DrawCube() {
 	glBegin(GL_QUADS);
 	glColor3f(1, 1, 0);
@@ -398,7 +206,7 @@ void CParticleProjectView::DrawSphere(float r) {
 	GLfloat radius = r;
 	int gradation = 20;
 
-	glColor3f(0.5, 0.5, 0.9);
+	glColor3f(0.8, 0.8, 1.0);
 	for (alpha = 0.0; alpha < PI; alpha += PI / gradation)
 	{
 		glBegin(GL_TRIANGLE_STRIP);
@@ -441,43 +249,78 @@ void CParticleProjectView::DrawGLScene(void) {
 	gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, look.x, look.y, look.z, cameraUp.x, cameraUp.y, cameraUp.z);
 	// z : 카메라 앞 뒤, y : 높이
 	
-	if (m_posLight == TRUE || m_spotLight == TRUE) {
+	if (b_Light == TRUE) {
 		glEnable(GL_LIGHTING);
+
+		GLfloat light0_ambient[] = { 0.5, 0.5, 0.9, 1.0 };
+		GLfloat light0_diffuse[] = { 0.3, 0.3, 0.9, 1.0 };
+		GLfloat light0_position[] = { 0.0, 20.0, 10.0, 0.0 };
+		GLfloat light0_specular[] = { 0.8, 0.5, 0.8, 1.0 };
+		GLfloat light0_shiness[] = { 25.0 };
+
+
 		GLfloat light1_ambient[] = { 0.5, 0.7, 0.3, 1.0 };
 		GLfloat light1_diffuse[] = { 0.5, 0.5, 0.9, 1.0 };
 		GLfloat light1_position[] = { 3.0, 7.0, 10.0, 1.0 }; // x,y,z,w w=1이면 positional
 		GLfloat light1_specular[] = { 0.9, 0.9, 0.9, 1.0 };
-		GLfloat light1_shiness[] = { 50.0 };
+		GLfloat light1_shiness[] = { 70.0 };
 
 		GLfloat spot_ambient[] = { 0.7, 0.7, 0.7, 1.0 };
 		GLfloat spot_diffuse[] = { 0.8, 0.8, 0.9, 1.0 };
 		GLfloat spot_specular[] = { 0.7, 0.7, 0.7, 1.0 };
-		GLfloat spot_position[] = { 7.0, 7.0, 10.0, 1.0 }; // spot light는 positional light의 특별한 경우! w = 1 해줘야했음
-		GLfloat spot_direction[] = { -1.0, -1.0, 1.0 };
-		if (m_posLight == TRUE) {
-			glEnable(GL_LIGHT1);
+		GLfloat spot_position[] = { 0.0, 6.0, 0.0, 1.0 }; // spot light는 positional light의 특별한 경우! w = 1 해줘야함
+		GLfloat spot_direction[] = { 0.0, -1.0, 0.0 };
 
-			glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
-			glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
-			glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
-			glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
-			glLightfv(GL_LIGHT1, GL_SHININESS, light1_shiness);
-		}
+		GLfloat spot_ambient2[] = { 0.7, 0.7, 0.7, 1.0 };
+		GLfloat spot_diffuse2[] = { 0.8, 0.8, 0.9, 1.0 };
+		GLfloat spot_specular2[] = { 0.7, 0.7, 0.7, 1.0 };
+		GLfloat spot_position2[] = { 3.0, 3.0, 0.0, 1.0 }; // spot light는 positional light의 특별한 경우! w = 1 해줘야함
+		GLfloat spot_direction2[] = { -1.0, -1.0, 0.0 };
 
-		if (m_spotLight == TRUE) {
-			glEnable(GL_LIGHT2);
 
-			glLightfv(GL_LIGHT2, GL_POSITION, spot_position);
-			glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, spot_direction);
-			glLightfv(GL_LIGHT2, GL_AMBIENT, spot_ambient);
-			glLightfv(GL_LIGHT2, GL_DIFFUSE, spot_diffuse);
-			glLightfv(GL_LIGHT2, GL_SPECULAR, spot_specular);
-			glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 10.0);
-			glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, 10.0);
-		}
 
-		GLfloat mat_ambient[] = { 0.3, 0.2, 0.8, 1.0 };
-		GLfloat mat_diffuse[] = { 0.7, 0.7, 0.7, 1.0 };
+
+		glEnable(GL_LIGHT0);
+
+		glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
+		glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
+		glLightfv(GL_LIGHT0, GL_SHININESS, light0_shiness);
+
+		glEnable(GL_LIGHT1);
+
+		glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
+		glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
+		glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
+		glLightfv(GL_LIGHT1, GL_SHININESS, light1_shiness);
+	
+		
+		glEnable(GL_LIGHT2);
+
+		glLightfv(GL_LIGHT2, GL_POSITION, spot_position);
+		glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, spot_direction);
+		glLightfv(GL_LIGHT2, GL_AMBIENT, spot_ambient);
+		glLightfv(GL_LIGHT2, GL_DIFFUSE, spot_diffuse);
+		glLightfv(GL_LIGHT2, GL_SPECULAR, spot_specular);
+		glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 15.0);
+		glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, 20.0);
+
+		glEnable(GL_LIGHT3);
+
+		glLightfv(GL_LIGHT3, GL_POSITION, spot_position2);
+		glLightfv(GL_LIGHT3, GL_SPOT_DIRECTION, spot_direction2);
+		glLightfv(GL_LIGHT3, GL_AMBIENT, spot_ambient2);
+		glLightfv(GL_LIGHT3, GL_DIFFUSE, spot_diffuse2);
+		glLightfv(GL_LIGHT3, GL_SPECULAR, spot_specular2);
+		glLightf(GL_LIGHT3, GL_SPOT_CUTOFF, 10.0);
+		glLightf(GL_LIGHT3, GL_SPOT_EXPONENT, 10.0);
+
+	
+
+		GLfloat mat_ambient[] = { 0.3, 0.5, 0.8, 1.0 };
+		GLfloat mat_diffuse[] = { 0.5, 0.5, 0.7, 1.0 };
 		GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 		GLfloat mat_shiness[] = { 30.0 };
 
@@ -754,15 +597,30 @@ BOOL CParticleProjectView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 
 
 
-void CParticleProjectView::OnSpotlight()
+void CParticleProjectView::OnLighton()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-	m_spotLight = !m_spotLight;
+	b_Light = TRUE;
 }
 
 
-void CParticleProjectView::OnPositional()
+void CParticleProjectView::OnLightoff()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-	m_posLight = !m_posLight;
+	b_Light = FALSE;
+
+}
+
+
+void CParticleProjectView::OnThreeOne()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	m_particle.isThree = FALSE;
+}
+
+
+void CParticleProjectView::OnThreeThree()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	m_particle.isThree = TRUE;
 }

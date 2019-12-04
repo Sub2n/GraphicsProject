@@ -26,22 +26,20 @@ public:
 	void InitGL(GLvoid);
 	void ReSizeGLScene(GLsizei width, GLsizei height);
 	void DrawGLScene(void);	// 그림 그리는 거 (여기 draw 코드만 수정하면 됨)
-	GLuint loadTextureBMP(const char* filename);
 	void DrawCube();
 	void DrawSphere(float r);
-	void loadTexture(char *file, GLuint *p_texture);
-	void DrawSkyBox(float width, float height, float length);
 
 public:
 	const GLuint Num_Particles = 5000;
 	Vector cameraPos, cameraFront, cameraUp; // 카메라
 	Particle m_particle = Particle(0.0, 3.0, 0.0); // particle instance
+
 	float Width, Height;
-	float lastX, lastY;
-	BOOL firstMouse, mouseMove;
-	float pitch, yaw;
+	float lastX, lastY;		// 마우스 커서
+	BOOL firstMouse, mouseMove;	// 처음 이동인지 체크
+	float pitch, yaw;	// 카메라 벡터
 	GLuint m_Textures[6];
-	BOOL m_posLight, m_spotLight;
+	BOOL b_Light;	// light on, off
 
 public:
 	float radians(float degree);
@@ -79,8 +77,10 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-	afx_msg void OnSpotlight();
-	afx_msg void OnPositional();
+	afx_msg void OnLighton();
+	afx_msg void OnLightoff();
+	afx_msg void OnThreeOne();
+	afx_msg void OnThreeThree();
 };
 
 #ifndef _DEBUG  // ParticleProjectView.cpp의 디버그 버전
